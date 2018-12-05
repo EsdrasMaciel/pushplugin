@@ -76,6 +76,16 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
   }
 
   @TargetApi(26)
+  private void getActiveNotifications() {
+    // only call on Android O and above
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      final NotificationManager notificationManager = (NotificationManager) cordova.getActivity()
+          .getSystemService(Context.NOTIFICATION_SERVICE);
+      notificationManager.getActiveNotifications();
+    }
+  }
+
+  @TargetApi(26)
   private void deleteChannel(String channelId) {
     // only call on Android O and above
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -425,6 +435,22 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
             Log.v(LOG_TAG, "clearNotification");
             int id = data.getInt(0);
             clearNotification(id);
+            callbackContext.success();
+          } catch (JSONException e) {
+            callbackContext.error(e.getMessage());
+          }
+        }
+      });
+    }else if (GET_ACTIVE_NOTIFICATIONS.equals(action)) {
+      // un-subscribing for a topic
+      cordova.getThreadPool().execute(new Runnable() {
+        public void run() {
+          try {
+            // String channelId = data.getString(0);
+
+            getActiveNotifications();
+
+            // deleteChannel(channelId);
             callbackContext.success();
           } catch (JSONException e) {
             callbackContext.error(e.getMessage());
